@@ -1,8 +1,0 @@
-livekeys.pro.user
-CMakeLists.txt.user
-build/*
-!build/.gitignore
-config.pri
-
-# macOS
-.DS_Store

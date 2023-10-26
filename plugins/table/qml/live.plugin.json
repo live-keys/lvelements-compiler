@@ -1,8 +1,0 @@
-{
-    "name": "table",
-    "package" : ".",
-    "libraryModules" : ["table"],
-    "palettes" : {
-        "TablePalette.qml" : "qml/table#Table"
-    }
-}

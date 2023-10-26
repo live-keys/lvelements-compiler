@@ -1,5 +1,0 @@
-component default < Element{
-    int y : 20
-    int t : 30
-    int x : this.y + this.t
-}

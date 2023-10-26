@@ -1,9 +1,0 @@
-component X{
-    var x: 100
-}
-
-instance main X{
-    fn completed(){
-        this.x = 200
-    }
-}

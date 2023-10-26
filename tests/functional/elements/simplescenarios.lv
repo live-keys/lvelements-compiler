@@ -1,7 +1,0 @@
-import test
-
-instance default TestCase{
-    
-    
-    
-}

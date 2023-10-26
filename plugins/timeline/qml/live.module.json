@@ -1,7 +1,0 @@
-{
-    "name": "timeline",
-    "package" : ".",
-    "palettes" : {
-        "palettes/TimelinePalette.qml": "qml/timeline#Timeline"
-    }
-}

@@ -1,6 +1,0 @@
-module editor.style
-
-depends QtQuick 2.3
-
-EditorStyle      1.0 EditorStyle.qml
-ContextMenuStyle 1.0 ContextMenuStyle.qml
