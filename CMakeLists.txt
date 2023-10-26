@@ -1,69 +1,70 @@
-cmake_minimum_required(VERSION 3.11)
-
-project (live_elements_js_compiler)
-set(CMAKE_CXX_STANDARD 17)
-
-add_library(live_elements_js_compiler SHARED src/compilerwrap.cpp ${CMAKE_JS_SRC})
-
-include(${CMAKE_CURRENT_SOURCE_DIR}/project/functions.cmake)
-
-# Configuration Options
-
-option(BUILD_TESTS "Build tests."  ON)
-
-
-# Configuragion Log
-
-message("\nBuild Configuration:")
-message("  * BUILD_TESTS:             ${BUILD_TESTS}")
-message("")
-
-# Include catch
-
-if(BUILD_TESTS)
-    set(CATCH2_AMALGAMATED_PATH "${CMAKE_CURRENT_SOURCE_DIR}/test/3rdparty/catch2/extras")
+if(BUILD_LVELEMENTSCOMPILER_STATIC)
+    add_library(lvelementscompiler STATIC)
+else()
+    add_library(lvelementscompiler SHARED)
 endif()
 
-# Add libraries
-
-add_subdirectory(lib)
-
-target_compile_definitions(live_elements_js_compiler PRIVATE
-    LV_BASE_STATIC 
-    LV_ELEMENTS_COMPILER_STATIC
-)
-target_link_libraries(live_elements_js_compiler PRIVATE
-    lvbase
-    lvelementscompiler
+set_target_properties(lvelementscompiler PROPERTIES
+    LIBRARY_OUTPUT_DIRECTORY "${LIBRARY_DEPLOY_PATH}"
+    RUNTIME_OUTPUT_DIRECTORY "${LIBRARY_DEPLOY_PATH}"
 )
 
-# Add CMake-js
 
-include_directories(${CMAKE_JS_INC})
-target_link_libraries(${PROJECT_NAME} PUBLIC ${CMAKE_JS_LIB})
-
-# Add napi
-
-execute_process(COMMAND node -p "require('node-addon-api').include"
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    OUTPUT_VARIABLE NODE_ADDON_API_DIR
-)
-string(REPLACE "\n" "" NODE_ADDON_API_DIR ${NODE_ADDON_API_DIR})
-string(REPLACE "\"" "" NODE_ADDON_API_DIR ${NODE_ADDON_API_DIR})
-
-set_target_properties(live_elements_js_compiler PROPERTIES PREFIX "" SUFFIX ".node")
-
-target_include_directories(live_elements_js_compiler PRIVATE 
-    "${NODE_ADDON_API_DIR}"
-) 
-target_compile_definitions(live_elements_js_compiler PRIVATE
-    LV_BASE_STATIC 
-    LV_ELEMENTS_COMPILER_STATIC
-    NAPI_CPP_EXCEPTIONS
+target_sources(lvelementscompiler PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/compiler.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/cursorcontext.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/elementsmodule.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/languageinfo.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/elementssections.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/languagenodes.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/languagenodestojs.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/languageparser.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/modulefile.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/parseddocument.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/sourcerange.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/languagenodeinfo.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/propertybindingcontainer.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/languagequery.cpp"
 )
 
-if (WIN32) 
-    target_compile_definitions(live_elements_js_compiler PRIVATE
-        _HAS_EXCEPTIONS=1
-    )
+target_include_directories(lvelementscompiler
+    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src"
+    PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include"
+)
+
+target_compile_definitions(lvelementscompiler PRIVATE LV_ELEMENTS_COMPILER_LIB)
+
+target_link_libraries(lvelementscompiler PRIVATE lvbase)
+
+if(BUILD_LVBASE_STATIC)
+    target_compile_definitions(lvelementscompiler PRIVATE LV_BASE_STATIC)
+endif()
+if(BUILD_LVELEMENTSCOMPILER_STATIC)
+    target_compile_definitions(lvelementscompiler PRIVATE LV_ELEMENTS_COMPILER_STATIC)
+endif()
+
+# Include 3rdparty library - treesitter
+
+target_sources(lvelementscompiler
+    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/treesitter/lib/src/lib.c"
+)
+target_include_directories(lvelementscompiler
+    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/treesitter/lib/src"
+    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/treesitter/lib/include"
+    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/treesitter/utf8proc"
+)
+
+# Include library - tree-sitter-elements
+
+target_sources(lvelementscompiler
+    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/treesitterelements/elementsparserinternal.c"
+    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/treesitterelements/scanner.c"
+)
+
+target_include_directories(lvelementscompiler
+    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/treesitterelements"
+)
+
+if(BUILD_TESTS)
+    add_subdirectory(test/unit)
 endif()
